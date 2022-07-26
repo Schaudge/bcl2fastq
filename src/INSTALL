@@ -75,8 +75,8 @@ For example, these environment variables could be set as:
 
     export TMP=/tmp
     export SOURCE=${TMP}/bcl2fastq
-    export BUILD=${TMP}/bcl2fastq2-v2.17.1.x-build
-    export INSTALL_DIR=/usr/local/bcl2fastq2-v2.17.1.x
+    export BUILD=${TMP}/bcl2fastq2-build
+    export INSTALL_DIR=/usr/local/bcl2fastq2
 
 NOTE: The build directory must be different from the source directory.
 
@@ -86,7 +86,7 @@ configuring the build, building the package, and installing:
 1) Decompress and extract the source code:
 
     cd ${TMP}
-    tar -xvzf path-to-tarball/bcl2fastq2-v2.17.10.x.tar.gz
+    tar -xvzf path-to-tarball/bcl2fastq-v2.21.tar.gz
 
 This command creates a bcl2fastq subdirectory in the ${TMP} directory.
 
