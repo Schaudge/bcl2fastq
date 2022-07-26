@@ -1,8 +1,10 @@
 #!/bin/bash
 # Written By Schaudge King
 # 2022-07-26
+# build the bcl2fastq from cmake environment (e.g. CLion IDE)
 
-mkdir build
+source_dir=$(dirname $0)
+mkdir -p ${source_dir}/build && cd ${source_dir}/build
 
 cmake -G "CodeBlocks - Unix Makefiles" -DBCL2FASTQ_NAME_SHORT:STRING="bcl2fastq" -DBCL2FASTQ_NAME_LONG:STRING="BCL to FASTQ file converter" -DBCL2FASTQ_COPYRIGHT:STRING="Copyright (c) 2007-2017 Illumina, Inc." \
 -DBCL2FASTQ_VERSION_MAJOR:STRING="2" -DBCL2FASTQ_VERSION_MINOR:STRING="20" -DBCL2FASTQ_VERSION_PATCH:STRING="0" -DBCL2FASTQ_VERSION_BUILD:STRING="422" -DBCL2FASTQ_VERSION:STRING="2.20.0.422" \
@@ -11,3 +13,4 @@ cmake -G "CodeBlocks - Unix Makefiles" -DBCL2FASTQ_NAME_SHORT:STRING="bcl2fastq"
 -DCMAKE_C_FLAGS_DEBUG="-g -O0" -DCMAKE_CXX_FLAGS_DEBUG="-g -O0" -DCMAKE_PARALLEL:STRING="1" ..
 
 make
+
