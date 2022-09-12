@@ -57,7 +57,7 @@ void resizeAndRealloc(T& container, size_t size)
 /*    if (container.capacity() < size)
     {
         // We need to allocate memory. Reserve 20% more than we need to reduce the
-        // liklihood we will need to do this again next time.
+        // likelihood we will need to do this again next time.
         container.reserve(size*1.2);
     }
 */

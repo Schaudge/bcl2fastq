@@ -282,9 +282,8 @@ void FastqCreateTask<numBasesPerByte>::createHeader(SampleIndex::FastqOffsetsCon
     common::putUnsignedInteger( y_pos, buffer_ );
 
     // Trace the offset location for output position, add by Schaudge King.
-    const unsigned int bcl_header_size = 4;
-    BCL2FASTQ_LOG(common::LogLevel::TRACE) << "Pos " << x_pos << ":" << y_pos << " for lane " << laneInfo_.getNumber()
-                                           << " with offset " << offset.second + bcl_header_size << "." << std::endl;
+    BCL2FASTQ_LOG(common::LogLevel::TRACE) << "Pos " << x_pos << ":" << y_pos << " in lane " << laneInfo_.getNumber() << " has bclIdx_ "
+	                                   << offset.first << " and secondary offset " << offset.second << ".\n";
 
     // UMI
     if (!umiCycles_.empty())
