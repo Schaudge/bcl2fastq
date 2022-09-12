@@ -85,9 +85,9 @@ endmacro(redist_package name args)
 macro(find_library_redist name pathhint header library)
     unset(${name}_LIBRARIES CACHE)
     # Search for library
-    unset(${name}_LIBRARIES CACHE)
+    unset(${name}_LIBRARIES)
     find_library(${name}_LIBRARIES NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}${library}${CMAKE_STATIC_LIBRARY_SUFFIX} HINTS ${pathhint}/lib NO_DEFAULT_PATH)
-    
+
     message(STATUS "Find library redist ${namenolib}, HINTS ${pathhint}/lib: ${${name}_LIBRARIES}")
     # Search for include path
     unset(${name}_INCLUDE_DIR CACHE)
@@ -97,7 +97,7 @@ macro(find_library_redist name pathhint header library)
 
     if(${name}_INCLUDE_DIR AND ${name}_LIBRARIES)
         set (HAVE_${name} true CACHE BOOL "lib bool" FORCE)
-        message (STATUS "Found redist ${name}  header: ${${name}_INCLUDE_DIR}/${header}")
+        message (STATUS "Found redist ${name} header: ${${name}_INCLUDE_DIR}/${header}")
         message (STATUS "Found redist ${name} library: ${${name}_LIBRARY}")
     endif(${name}_INCLUDE_DIR AND ${name}_LIBRARIES)
 
