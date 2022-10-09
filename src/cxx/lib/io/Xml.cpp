@@ -96,7 +96,7 @@ void unindex(const ptree::value_type &nameElementKv, ptree &resultTree)
             ptree &insertedChildTree = resultTree.add_child(nameElementKv.first.substr(indexed.length()), ptree());
 
             std::for_each(indexElementKv.second.begin(), indexElementKv.second.end(),
-                          boost::bind(unindex, _1, boost::ref(insertedChildTree)));
+                          boost::bind(unindex, boost::placeholders::_1, boost::ref(insertedChildTree)));
 
             if (insertedChildTree.empty())
             {
@@ -112,7 +112,7 @@ void unindex(const ptree::value_type &nameElementKv, ptree &resultTree)
     {
         ptree &insertedChildTree = resultTree.add_child(nameElementKv.first, ptree());
         std::for_each(nameElementKv.second.begin(), nameElementKv.second.end(),
-                      boost::bind(unindex, _1, boost::ref(insertedChildTree)));
+                      boost::bind(unindex, boost::placeholders::_1, boost::ref(insertedChildTree)));
         if (insertedChildTree.empty())
         {
             //unindexing did not find any indexed nodes. just add it as is
@@ -168,19 +168,11 @@ std::ostream &serializeAsXml(std::ostream &os, const boost::property_tree::ptree
     if (!tree.empty())
     {
         unindex(*tree.begin(), treeWithIndexAttributes);
-#ifndef WIN32
-        boost::property_tree::write_xml(os, treeWithIndexAttributes, boost::property_tree::xml_writer_make_settings(' ', 2));
-#else
         boost::property_tree::write_xml(os, treeWithIndexAttributes, boost::property_tree::xml_writer_make_settings<std::string>(' ', 2));
-#endif
     }
     else
     {
-#ifndef WIN32
-        boost::property_tree::write_xml(os, tree, boost::property_tree::xml_writer_make_settings(' ', 2));
-#else
         boost::property_tree::write_xml(os, tree, boost::property_tree::xml_writer_make_settings<std::string>(' ', 2));
-#endif
     }
     return os;
 }

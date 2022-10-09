@@ -75,8 +75,8 @@ common::TotalClustersCount LaneInfo::getClustersCount() const
         common::TotalClustersCount(0),
         boost::bind(
             std::plus<common::TotalClustersCount>(),
-            _1,
-            boost::bind(&TileInfo::getClustersCount, _2)
+            boost::placeholders::_1,
+            boost::bind(&TileInfo::getClustersCount, boost::placeholders::_2)
         )
     );
 }
