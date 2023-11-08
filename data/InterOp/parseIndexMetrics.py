@@ -66,7 +66,7 @@ def getStr(fin, length):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print "need an IndexMetricsOut.bin file"
+        print("need an IndexMetricsOut.bin file")
         sys.exit(1)
     lanes = {}
     binfile = sys.argv[1]

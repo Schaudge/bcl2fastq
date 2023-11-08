@@ -21,6 +21,9 @@
 #include <chrono>
 #include <thread>
 
+#include <iostream>
+#include <fstream>
+
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 
@@ -413,6 +416,13 @@ FilterLoadTask::FilterLoadTask(
 
 bool FilterLoadTask::execute(int32_t)
 {
+    // generate every cluster's position context information for each tile, added by Schaudge King.
+    std::string firstBclFilepath = bclData_.begin()->cycleData_[0].bcls_.path_.string();
+    auto batchNameEndIdx = firstBclFilepath.find("/Data/Intensities/BaseCalls/");
+    auto batchNameStartIdx = firstBclFilepath.find_last_of('/', batchNameEndIdx - 1);
+    std::string batchName = firstBclFilepath.substr(batchNameStartIdx + 1, batchNameEndIdx - batchNameStartIdx - 1);
+    std::ofstream orderedClusterPosition("P_" + batchName + ".csv", std::ios::app);
+
     size_t bufferIndex = 0;
     for (auto& rawDataForTile : bclData_)
     {
@@ -422,10 +432,19 @@ bool FilterLoadTask::execute(int32_t)
                        aggregateTilesFlag_,
                        aggregateTilesFlag_ && (tileInfoIter_->getIndex() != 0));
 
+        std::string prefixTileName = std::to_string(laneInfo_.getNumber()) + ":"
+                                     + std::to_string((*tileInfoIter_).getNumber()) + ":";
+        if (orderedClusterPosition.is_open()) {
+            for (auto& coordinate : *outputBuffer_[bufferIndex].positions_) {
+                orderedClusterPosition << prefixTileName << coordinate.x_ << ":" << coordinate.y_ << "\n";
+            }
+        }
+        orderedClusterPosition.flush();  // avoid multiple threads damage, and keep the cluster well-ordered.
+
         ++bufferIndex;
         ++tileInfoIter_;
     }
-
+    orderedClusterPosition.close();
     return true;
 }
 
@@ -448,6 +467,24 @@ void FilterLoadTask::readFilterFile(common::RawDataBuffer& filterData,
                           clustersCount,
                           filterData.path_,
                           outputBuffer);
+
+    /*
+    // generate every cluster's position context information for each tile, added by Schaudge King.
+    std::string firstBclFilepath = bclData_.begin()->cycleData_[0].bcls_.path_.string();
+    auto batchNameEndIdx = firstBclFilepath.find("/Data/Intensities/BaseCalls/");
+    auto batchNameStartIdx = firstBclFilepath.find_last_of('/', batchNameEndIdx - 1);
+    std::string batchName = firstBclFilepath.substr(batchNameStartIdx + 1, batchNameEndIdx - batchNameStartIdx - 1);
+
+    // generate the tile's position information after loading filter immediately, and avoid the multiple threads damage.
+    std::string prefixTileName = std::to_string(laneInfo_.getNumber()) + ":" + std::to_string((*tileInfoIter_).getNumber());
+    std::ofstream tileClusterPosition(prefixTileName + ".csv", std::ios::out);
+    if (tileClusterPosition.is_open()) {
+        for (auto& coordinate : *outputBuffer.positions_) {
+            tileClusterPosition << prefixTileName << ":" << coordinate.x_ << ":" << coordinate.y_ << "\n";
+        }
+    }
+    tileClusterPosition.close();
+    */
 }
 
 void FilterLoadTask::validateFilterRecords(std::size_t                        recordsRead,

@@ -26,7 +26,7 @@ file (GLOB BCL2FASTQ_PROGRAM_SOURCE_LIST [a-zA-Z0-9]*.cpp)
 ## Generic rule for all the other programs
 ##
 foreach(BCL2FASTQ_PROGRAM_SOURCE ${BCL2FASTQ_PROGRAM_SOURCE_LIST})
-    get_filename_component(BCL2FASTQ_PROGRAM ${BCL2FASTBCL2FASTQE} NAME_WE)
+    get_filename_component(BCL2FASTQ_PROGRAM ${BCL2FASTQ_PROGRAM_SOURCE} NAME_WE)
     add_executable        (${BCL2FASTQ_PROGRAM} ${BCL2FASTQ_PROGRAM_SOURCE})
     target_link_libraries (${BCL2FASTQ_PROGRAM} ${BCL2FASTQ_AVAILABLE_LIBRARIES}
                            ${Boost_LIBRARIES} ${BCL2FASTQ_DEP_LIB}   
