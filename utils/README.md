@@ -1,12 +1,12 @@
 # modify the base and quality context in bcl file
 
-## 1. python3 and bgzip install
+## 1. bgzip all bcl.bgzf blocks into bcl cluster bytes.
 
-## 2. copy scripts `bcl_correct.sh` and `base_modify.py` into the bcl (e.g. Data/Intensities/BaseCalls/L001) directory
+## 2. fetch (construct) the positive sites cycle bcl database (one dir to one site), see fetch_bcl.py for reference.
 
-## 3. setting the bcl_correct.sh arguments for execution (see bcl_correct.sh for details)
+## 3. run the base modify workflow for one batch from configuration.
 ```
-sh bcl_correct.sh cycle_number offset_list
+python3 base_modify.py sites_conf_path
 ```
 
 ## 4. rerun bcl2fastq for checking
