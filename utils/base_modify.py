@@ -50,9 +50,9 @@ def read_correct_sites_conf(batch_dir_path: str, sites_correct_conf: str, cycle_
                 elif path.exists(fixed_random_setting):
                     with open(fixed_random_setting) as idx_base_input:
                         for line in idx_base_input:
-                            for _idx1, _idx2 in line.strip().split("\t"):
-                                fixed_idx1, fixed_idx2 = int(_idx1), int(_idx2)
-                                correct_sites_dict[fixed_idx1] = all_positive_sites[fixed_idx2]
+                            _idx1, _idx2 = line.strip().split("\t")
+                            fixed_idx1, fixed_idx2 = int(_idx1), int(_idx2)
+                            correct_sites_dict[fixed_idx1] = all_positive_sites[fixed_idx2]
                 else:
                     raise Exception("break UN run ---")
             elif cluster_path == "FILTER":
@@ -75,9 +75,9 @@ def read_correct_sites_conf(batch_dir_path: str, sites_correct_conf: str, cycle_
                 elif path.exists(fixed_random_setting):
                     with open(fixed_random_setting) as idx_base_input:
                         for line in idx_base_input:
-                            for _idx1, _idx2 in line.strip().split("\t"):
-                                fixed_idx1, fixed_idx2 = int(_idx1), int(_idx2)
-                                correct_sites_dict[fixed_idx1] = all_positive_sites[fixed_idx2]
+                            _idx1, _idx2 = line.strip().split("\t")
+                            fixed_idx1, fixed_idx2 = int(_idx1), int(_idx2)
+                            correct_sites_dict[fixed_idx1] = all_positive_sites[fixed_idx2]
                 else:
                     raise Exception("break inplace run ---")
 
