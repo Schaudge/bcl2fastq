@@ -22,62 +22,65 @@ def read_correct_sites_conf(batch_dir_path: str, sites_correct_conf: str, cycle_
 
     # 2. read all Undetermined FILTER PASS cluster index for one batch
     all_idx_pool, sampled_idx_pool = [], []
-    with open(batch_dir_path + "/UN") as unknown_idx_input:
-        for _cluster_idx in unknown_idx_input:
-            all_idx_pool.append(int(_cluster_idx.strip()))
+    if first_cycle:
+        with open(batch_dir_path + "/UN") as unknown_idx_input:
+            for _cluster_idx in unknown_idx_input:
+                all_idx_pool.append(int(_cluster_idx.strip()))
 
     # 3. build idx <-> base quality pair, and output the random setting for first cycle data ...
     correct_sites_dict, filter_sites_dict = {}, {}
-    for sample_id, (site, reads_count, cluster_path) in sites_conf_dict.items():
-        cluster_file_path = batch_dir_path + "/" + cluster_path
-        fixed_random_setting = batch_dir_path + "/" + sample_id + "_" + site
-        select_sites_file = ("adapter/" + sample_id + "/" + cycle_bcl_name) if adapter_base else (site + "/" + cycle_bcl_name)
-        if cluster_path == "UN":
-            with open(select_sites_file, "rb") as bcl_input:
-                all_positive_sites = bytearray(bcl_input.read())
-            if first_cycle:
-                sampled_cluster_idx = sample(range(0, len(all_idx_pool)), int(reads_count))
+    for sample_id, all_correct_sites_list in sites_conf_dict.items():
+        for site, reads_count, cluster_path in all_correct_sites_list:
+            cluster_file_path = batch_dir_path + "/" + cluster_path
+            fixed_random_setting = batch_dir_path + "/" + sample_id + "_" + site
+            select_sites_file = ("adapter/" + sample_id + "/" + cycle_bcl_name) if adapter_base else (site + "/" + cycle_bcl_name)
+            if cluster_path == "UN":
+                with open(select_sites_file, "rb") as bcl_input:
+                    all_positive_sites = bcl_input.read()
+                if first_cycle:
+                    sampled_cluster_idx = sample(range(0, len(all_idx_pool)), int(reads_count))
+                    random_base_idx = sample(range(0, len(all_positive_sites)), int(reads_count))
+                    with open(fixed_random_setting, "w") as random_setting_output:
+                        for _idx1, _idx2 in zip(sampled_cluster_idx, random_base_idx):
+                            while _idx1 in sampled_idx_pool:
+                                _idx1 += 1
+                            correct_sites_dict[all_idx_pool[_idx1]] = all_positive_sites[_idx2]
+                            sampled_idx_pool.append(_idx1)
+                            random_setting_output.write(str(all_idx_pool[_idx1]) + "\t" + str(_idx2) + "\n")
+                elif path.exists(fixed_random_setting):
+                    with open(fixed_random_setting) as idx_base_input:
+                        for line in idx_base_input:
+                            for _idx1, _idx2 in line.strip().split("\t"):
+                                fixed_idx1, fixed_idx2 = int(_idx1), int(_idx2)
+                                correct_sites_dict[fixed_idx1] = all_positive_sites[fixed_idx2]
+                else:
+                    raise Exception("break UN run ---")
+            elif cluster_path == "FILTER":
+                with open(cluster_file_path) as idx_input:
+                    for line in idx_input:
+                        filter_sites_dict[int(line.strip())] = True
+            elif path.exists(cluster_file_path):
+                inplace_cluster_idx = []
+                with open(cluster_file_path) as idx_input:
+                    for line in idx_input:
+                        inplace_cluster_idx.append(int(line.strip()))
+                with open(select_sites_file, "rb") as bcl_input:
+                    all_positive_sites = bcl_input.read()
                 random_base_idx = sample(range(0, len(all_positive_sites)), int(reads_count))
-                with open(fixed_random_setting, "w") as random_setting_output:
-                    for _idx1, _idx2 in zip(sampled_cluster_idx, random_base_idx):
-                        while _idx1 in sampled_idx_pool:
-                            _idx1 += 1
-                        correct_sites_dict[all_idx_pool[_idx1]] = all_positive_sites[_idx2: _idx2 + 1]
-                        sampled_idx_pool.append(_idx1)
-                        random_setting_output.write(str(_idx1) + "\t" + str(_idx2) + "\n")
-            elif path.exists(fixed_random_setting):
-                with open(fixed_random_setting) as idx_base_input:
-                    for line in idx_base_input:
-                        for _idx1, _idx2 in line.strip().split("\t"):
-                            fixed_idx1, fixed_idx2 = int(_idx1), int(_idx2)
-                            correct_sites_dict[all_idx_pool[fixed_idx1]] = all_positive_sites[fixed_idx2: fixed_idx2 + 1]
-            else:
-                raise Exception("break UN run ---")
-        elif cluster_path == "FILTER":
-            with open(cluster_file_path) as idx_input:
-                for line in idx_input:
-                    filter_sites_dict[int(line.strip())] = True
-        elif path.exists(cluster_file_path):
-            inplace_cluster_idx = []
-            with open(cluster_file_path) as idx_input:
-                for line in idx_input:
-                    inplace_cluster_idx.append(int(line.strip()))
-            with open(select_sites_file, "rb") as bcl_input:
-                all_positive_sites = bytearray(bcl_input.read())
-            random_base_idx = sample(range(0, len(all_positive_sites)), int(reads_count))
-            if first_cycle:
-                with open(fixed_random_setting, "w") as random_setting_output:
-                    for _idx1, _idx2 in zip(inplace_cluster_idx, random_base_idx):
-                        correct_sites_dict[_idx1] = all_positive_sites[_idx2: _idx2 + 1]
-                        random_setting_output.write(str(_idx1) + "\t" + str(_idx2) + "\n")
-            elif path.exists(fixed_random_setting):
-                with open(fixed_random_setting) as idx_base_input:
-                    for line in idx_base_input:
-                        for _idx1, _idx2 in line.strip().split("\t"):
-                            fixed_idx1, fixed_idx2 = int(_idx1), int(_idx2)
-                            correct_sites_dict[fixed_idx1] = all_positive_sites[fixed_idx2: fixed_idx2 + 1]
-            else:
-                raise Exception("break inplace run ---")
+                if first_cycle:
+                    with open(fixed_random_setting, "w") as random_setting_output:
+                        for _idx1, _idx2 in zip(inplace_cluster_idx, random_base_idx):
+                            correct_sites_dict[_idx1] = all_positive_sites[_idx2]
+                            random_setting_output.write(str(_idx1) + "\t" + str(_idx2) + "\n")
+                elif path.exists(fixed_random_setting):
+                    with open(fixed_random_setting) as idx_base_input:
+                        for line in idx_base_input:
+                            for _idx1, _idx2 in line.strip().split("\t"):
+                                fixed_idx1, fixed_idx2 = int(_idx1), int(_idx2)
+                                correct_sites_dict[fixed_idx1] = all_positive_sites[fixed_idx2]
+                else:
+                    raise Exception("break inplace run ---")
+
     return correct_sites_dict, filter_sites_dict
 
 
@@ -92,6 +95,27 @@ def bcl_base_change_workflow(bcl_bgzf_path: str, output_bcl_path: str, sites_con
     with open(bcl_bgzf_path, "rb") as bgzf_input:   # builtins open, not gzip or bgzf
         for each_block in bgzf.BgzfBlocks(bgzf_input):
             print("offset %i, length %i; data start %i, data length %i" % each_block)
+
+    Comments for byte operation:
+    1. build (immutable) bytes:                             type(bytes_stream)   --->  bytes
+    bytes_stream = b"ABCDEFGHIJabcdefghij"                  --->
+    bytes_stream = "ABCDEFGHIJabcdefghij".encode("latin-1")
+    bytes_stream = bytes("ABCDEFGHIJabcdefghij", "latin-1")
+    bytes_stream = bytes.fromhex('41 42 43 44 45 46')      <--->      bytes_stream.hex()
+    ---> or read mode: rb.
+    bytes_stream = bytes(range(65, 75))
+
+    2. build (mutable) bytearray:
+    bytes_array = bytearray("ABCDEFGHIJabcdefghij", "latin-1")
+    bytes_array = bytearray(bytes_stream)         --->     bytearray(b'ABCDEFGHIJabcdefghij')
+    bytes_stream[0]                               --->     65               int  ASCII 65
+    # bytes_array = bytearray(bytes_stream[0])    --->     b'\x00...\x00'   init by 65 b'\x00'
+    bytes_stream[0:1]                             --->     b'A'             bytes
+    # bytes_array = bytearray(bytes_stream[0:1])  --->     bytearray(b'A')
+    bytes_stream[0:1].decode("latin-1")           --->     'A'              str
+
+    bytes_array[0], bytes_array[10] = bytes_stream[10], bytes_stream[0]     # swap two bytes
+    ord(bytes_stream[0:1])                        --->     65   <--- chr()    int  ASCII 65
 
     :param bcl_bgzf_path:
     :param output_bcl_path:
@@ -143,7 +167,10 @@ def bcl_base_change_workflow(bcl_bgzf_path: str, output_bcl_path: str, sites_con
     adapter_cycle_flag = True if path.basename(bcl_bgzf_path) in ["0152.bcl.bgzf", "0153.bcl.bgzf", "0154.bcl.bgzf",
                                                                   "0155.bcl.bgzf", "0156.bcl.bgzf", "0157.bcl.bgzf",
                                                                   "0158.bcl.bgzf", "0159.bcl.bgzf"] else False
-    inplace_sites, filter_sites = read_correct_sites_conf(bcl_bgzf_path, sites_conf_path, path.basename(bcl_bgzf_path),
+    batch_dir_idx = bcl_bgzf_path.find("Data/Intensities/BaseCalls/L001/")
+    batch_dir_name = path.dirname(bcl_bgzf_path[:batch_dir_idx])
+    bcl_file_name = path.splitext(path.basename(bcl_bgzf_path))[0]
+    inplace_sites, filter_sites = read_correct_sites_conf(batch_dir_name, sites_conf_path, bcl_file_name,
                                                           first_sequencing_cycle, adapter_cycle_flag)
     for cluster_idx, quality_base_byte in inplace_sites.items():
         bcl_cluster_base[cluster_idx] = quality_base_byte
@@ -153,9 +180,9 @@ def bcl_base_change_workflow(bcl_bgzf_path: str, output_bcl_path: str, sites_con
         with open(input_filter_file, "rb") as filter_input, open(output_filter_file, "wb") as filter_output:
             filter_byte_stream = filter_input.read()
             filter_char_buffer = bytearray(filter_byte_stream)
-        for cluster_idx in filter_sites:
-            filter_char_buffer[cluster_idx] = 0x0
-        filter_output.write(filter_char_buffer)
+            for cluster_idx in filter_sites:
+                filter_char_buffer[cluster_idx] = 0x0
+            filter_output.write(filter_char_buffer)
 
     # 4. compress the modified bytearray into bgzf
     compressed_bgzf_size, new_tile_offset = 0, [0]
